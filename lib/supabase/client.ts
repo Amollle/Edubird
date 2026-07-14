@@ -22,6 +22,18 @@ export function createSupabaseBrowserClient() {
         async signInWithOAuth() {
           return { data: null, error: new Error('Supabase is not configured yet.') };
         }
+      },
+      storage: {
+        from() {
+          return {
+            async upload() {
+              return { data: null, error: new Error('Supabase is not configured yet.') };
+            },
+            getPublicUrl() {
+              return { data: { publicUrl: '' } };
+            }
+          };
+        }
       }
     } as const;
   }

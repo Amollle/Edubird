@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { CircleUserRound, Pencil, ShieldCheck } from 'lucide-react';
 import type { HistoryEntry, UserProfile } from '@/lib/types';
-import { formatDate, gradeLevelLabel } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import { ProfileHeader } from '@/components/profile/profile-header';
 
 type Props = {
   profile: UserProfile;
@@ -13,60 +13,7 @@ export function ProfileView({ profile, history, guest }: Props) {
   return (
     <div className="profile-shell">
       <section className="stack">
-        <div className="card pad" style={{ minHeight: 250, display: 'grid', gap: 18, alignContent: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}>
-            <div
-              style={{
-                width: 124,
-                height: 124,
-                borderRadius: 999,
-                background: 'linear-gradient(180deg, #e0e7ff, #bfdbfe)',
-                display: 'grid',
-                placeItems: 'center',
-                overflow: 'hidden',
-                border: '4px solid white',
-                boxShadow: '0 12px 30px rgba(0,0,0,0.08)'
-              }}
-            >
-              {profile.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={profile.avatarUrl} alt={profile.displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <CircleUserRound size={56} color="var(--primary)" />
-              )}
-            </div>
-
-            <div style={{ display: 'grid', gap: 12 }}>
-              <span className="badge success" style={{ width: 'fit-content' }}>
-                {guest ? 'Guest Learner' : 'Premium Member'}
-              </span>
-              <h1 style={{ margin: 0, fontSize: 'clamp(2.2rem, 3vw, 3.6rem)', letterSpacing: '-0.04em' }}>
-                {profile.displayName}
-              </h1>
-              <p className="muted" style={{ margin: 0, fontSize: 18 }}>
-                {guest
-                  ? 'Explore a limited demo experience before signing in.'
-                  : `Empowering my journey in ${gradeLevelLabel(profile.gradeLevel)} learning.`}
-              </p>
-              {!guest ? (
-                <button className="button-primary" type="button" style={{ width: 'fit-content', minWidth: 180 }}>
-                  <Pencil size={16} />
-                  Edit Profile
-                </button>
-              ) : (
-                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                  <Link href="/auth" className="button-primary">
-                    Sign Up Free
-                  </Link>
-                  <Link href="/auth" className="button-secondary">
-                    Sign In
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
+        <ProfileHeader profile={profile} guest={guest} />
       </section>
 
       <section className="card pad" style={{ display: 'grid', gap: 20 }}>
