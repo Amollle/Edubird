@@ -1,0 +1,142 @@
+import Link from 'next/link';
+import { CircleUserRound, Pencil, ShieldCheck } from 'lucide-react';
+import type { HistoryEntry, UserProfile } from '@/lib/types';
+import { formatDate, gradeLevelLabel } from '@/lib/utils';
+
+type Props = {
+  profile: UserProfile;
+  history: HistoryEntry[];
+  guest?: boolean;
+};
+
+export function ProfileView({ profile, history, guest }: Props) {
+  return (
+    <div className="profile-shell">
+      <section className="stack">
+        <div className="card pad" style={{ minHeight: 250, display: 'grid', gap: 18, alignContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}>
+            <div
+              style={{
+                width: 124,
+                height: 124,
+                borderRadius: 999,
+                background: 'linear-gradient(180deg, #e0e7ff, #bfdbfe)',
+                display: 'grid',
+                placeItems: 'center',
+                overflow: 'hidden',
+                border: '4px solid white',
+                boxShadow: '0 12px 30px rgba(0,0,0,0.08)'
+              }}
+            >
+              {profile.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profile.avatarUrl} alt={profile.displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <CircleUserRound size={56} color="var(--primary)" />
+              )}
+            </div>
+
+            <div style={{ display: 'grid', gap: 12 }}>
+              <span className="badge success" style={{ width: 'fit-content' }}>
+                {guest ? 'Guest Learner' : 'Premium Member'}
+              </span>
+              <h1 style={{ margin: 0, fontSize: 'clamp(2.2rem, 3vw, 3.6rem)', letterSpacing: '-0.04em' }}>
+                {profile.displayName}
+              </h1>
+              <p className="muted" style={{ margin: 0, fontSize: 18 }}>
+                {guest
+                  ? 'Explore a limited demo experience before signing in.'
+                  : `Empowering my journey in ${gradeLevelLabel(profile.gradeLevel)} learning.`}
+              </p>
+              {!guest ? (
+                <button className="button-primary" type="button" style={{ width: 'fit-content', minWidth: 180 }}>
+                  <Pencil size={16} />
+                  Edit Profile
+                </button>
+              ) : (
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                  <Link href="/auth" className="button-primary">
+                    Sign Up Free
+                  </Link>
+                  <Link href="/auth" className="button-secondary">
+                    Sign In
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <section className="card pad" style={{ display: 'grid', gap: 20 }}>
+        <div className="card-header">
+          <h2 style={{ margin: 0, fontSize: 'clamp(1.6rem, 2vw, 2rem)' }}>Reading History</h2>
+          <Link href="/history" style={{ color: 'var(--primary)', fontWeight: 700 }}>
+            View All
+          </Link>
+        </div>
+
+        <div className="history-list">
+          {history.length > 0 ? (
+            history.map((entry) => (
+              <article className="history-item" key={entry.id}>
+                <div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+                    <span className="badge">{entry.topic}</span>
+                    <span className="badge success">{entry.scorePercent != null ? 'Completed' : 'Not Attempted'}</span>
+                  </div>
+                  <h3 className="history-title">{entry.title}</h3>
+                  <div className="muted small">
+                    Read on {formatDate(entry.createdAt)} · {entry.wordCount} words
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--success)' }}>
+                    {guest || entry.scorePercent == null ? '--' : `${entry.scorePercent}%`}
+                  </div>
+                  <div className="muted small">Quiz Score</div>
+                </div>
+              </article>
+            ))
+          ) : (
+            <div className="muted">No reading history yet.</div>
+          )}
+        </div>
+
+        {guest && (
+          <div className="card pad" style={{ background: 'var(--surface-mid)', boxShadow: 'none' }}>
+            <div style={{ textAlign: 'center', color: 'var(--text-soft)' }}>Only the last 3 activities are visible as a guest.</div>
+            <div style={{ marginTop: 12, textAlign: 'center', fontWeight: 700, color: 'var(--primary)' }}>
+              Create Account to See Full History
+            </div>
+          </div>
+        )}
+
+        {!guest && (
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-label">Articles Read</div>
+              <div className="stat-value">{history.length}</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-label">Quiz Average</div>
+              <div className="stat-value" style={{ color: 'var(--success)' }}>
+                {(() => {
+                  const scored = history.filter((entry) => entry.scorePercent != null);
+                  if (scored.length === 0) {
+                    return '--';
+                  }
+                  const average = Math.round(
+                    scored.reduce((sum, entry) => sum + (entry.scorePercent ?? 0), 0) / scored.length
+                  );
+                  return `${average}%`;
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
