@@ -150,7 +150,8 @@ function buildSystemPrompt() {
     'Match vocabulary, sentence length, and complexity to the exact grade level you are given: a 2nd-grade passage should use short sentences and simple words, while a 12th-grade or university passage can use longer sentences, precise vocabulary, and more nuanced ideas.',
     'Return only valid JSON with EXACTLY these top-level keys, spelled exactly this way: "title", "summary", "passage", "questions". Do not rename, abbreviate, or substitute any of these keys (for example, never use "pass" instead of "passage"). Do not include markdown fences or any text outside the JSON object.',
     'Questions must be multiple choice with exactly 4 options each. Each question object must have a "type" field whose value is EXACTLY one of these five strings, with no other wording allowed: "main_idea", "detail", "vocabulary", "inference", "purpose".',
-    'For every question, the "answer" field must be an exact, character-for-character copy of one of the strings in that question\'s "options" array. Never write an answer that paraphrases or differs even slightly from its matching option text.'
+    'For every question, the "answer" field must be an exact, character-for-character copy of one of the strings in that question\'s "options" array. Never write an answer that paraphrases or differs even slightly from its matching option text.',
+    'IMPORTANT: All four options for a question must be similar in length and level of detail. Never make the correct option noticeably longer, more specific, or more elaborately worded than the three incorrect options (this is a common, lazy pattern that lets students guess the answer just by picking the longest choice, and it must be avoided). Write the incorrect options as equally full, plausible-sounding sentences or phrases, matched closely in word count to the correct option, not short throwaway phrases.'
   ].join(' ');
 }
 

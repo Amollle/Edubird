@@ -224,9 +224,36 @@ export function buildFallbackPassage(article: ArticleSource, gradeLevel: GradeLe
   };
 }
 
+/**
+ * Builds 3 distractor options for a "detail"-style question whose correct
+ * answer is a real sentence pulled from the passage. Using other real
+ * sentences from the same passage (instead of short canned phrases) keeps
+ * every option in a similar length/detail range, so the correct answer can't
+ * be picked out just by being the longest choice.
+ */
+function buildSentenceDistractors(correctSentence: string, allSentences: string[], usedAnswers: Set<string>): string[] {
+  const candidates = allSentences.filter((sentence) => sentence !== correctSentence && !usedAnswers.has(sentence));
+  const distractors = candidates.slice(0, 3);
+
+  // If the passage doesn't have enough other sentences (very short passage),
+  // pad with full-sentence-length generic fillers rather than short phrases.
+  const filler = [
+    'The passage does not mention this detail anywhere in the text.',
+    'This statement contradicts what the passage actually describes.',
+    'The passage presents this as the opposite of what really happened.'
+  ];
+  let fillerIndex = 0;
+  while (distractors.length < 3 && fillerIndex < filler.length) {
+    distractors.push(filler[fillerIndex]);
+    fillerIndex += 1;
+  }
+
+  return distractors;
+}
+
 export function buildQuestions(title: string, topic: string, passage: string, count: number): ReadingQuestion[] {
   const sentences = passage.split(/(?<=[.!?])\s+/).filter(Boolean);
-  const mainIdeaAnswer = `The passage explains how ${topic} connects to real-world learning and why the topic matters.`;
+  const mainIdeaAnswer = `The passage explains how ${topic} connects to real-world learning and why the topic matters for students today.`;
 
   const questions: ReadingQuestion[] = [
     {
@@ -235,53 +262,51 @@ export function buildQuestions(title: string, topic: string, passage: string, co
       answer: mainIdeaAnswer,
       options: [
         mainIdeaAnswer,
-        'The article is only about entertainment and unrelated details.',
-        'The article argues that the topic has no relevance at all.',
-        'The article is mostly a fictional story with no evidence.'
+        'The article focuses only on entertainment gossip and has no connection to real events.',
+        'The article claims this topic has no relevance to students or their daily lives.',
+        'The article is a fictional story written purely for entertainment, with no factual basis.'
       ]
     },
     {
       type: 'detail',
       question: `Which detail is most clearly supported by the passage?`,
-      answer: sentences[0] ?? 'The passage gives a real-world explanation of the topic.',
+      answer: sentences[0] ?? 'The passage gives a clear, real-world explanation of the topic for students to study.',
       options: [
-        sentences[0] ?? 'The passage gives a real-world explanation of the topic.',
-        'The passage says the topic is completely unimportant.',
-        'The passage contains only unrelated facts.',
-        'The passage argues that reading skills do not matter.'
+        sentences[0] ?? 'The passage gives a clear, real-world explanation of the topic for students to study.',
+        ...buildSentenceDistractors(sentences[0] ?? '', sentences.slice(1), new Set())
       ]
     },
     {
       type: 'vocabulary',
       question: `What does the word "context" most likely mean in this passage?`,
-      answer: 'It means the surrounding information that helps explain an idea.',
+      answer: 'It means the surrounding background information that helps explain and clarify an idea.',
       options: [
-        'It means the surrounding information that helps explain an idea.',
-        'It means a random fact with no connection.',
-        'It means a type of headline only.',
-        'It means a scientific instrument.'
+        'It means the surrounding background information that helps explain and clarify an idea.',
+        'It means a random, unrelated fact that has no connection to the main topic.',
+        'It means a short headline used only to grab a reader\'s attention quickly.',
+        'It means a specialized tool or instrument used in scientific laboratories.'
       ]
     },
     {
       type: 'inference',
-      question: `What can the reader infer about the author’s attitude?`,
-      answer: 'The author values careful reading and sees the topic as important for learning.',
+      question: `What can the reader infer about the author's attitude?`,
+      answer: 'The author values careful, close reading and sees this topic as genuinely important for learning.',
       options: [
-        'The author values careful reading and sees the topic as important for learning.',
-        'The author is confused and has no point.',
-        'The author wants to avoid all evidence.',
-        'The author thinks the topic should be ignored.'
+        'The author values careful, close reading and sees this topic as genuinely important for learning.',
+        'The author seems confused about the topic and does not make a clear point anywhere.',
+        'The author actively wants readers to ignore all of the evidence presented here.',
+        'The author believes this topic should be dismissed and is not worth anyone\'s attention.'
       ]
     },
     {
       type: 'purpose',
       question: `Why did the author write this passage?`,
-      answer: 'To inform readers and support comprehension practice with a relevant news-inspired topic.',
+      answer: 'To inform readers and support comprehension practice using a relevant, news-inspired topic.',
       options: [
-        'To inform readers and support comprehension practice with a relevant news-inspired topic.',
-        'To persuade readers to buy a product.',
-        'To tell a fictional adventure story.',
-        'To provide a sports recap only.'
+        'To inform readers and support comprehension practice using a relevant, news-inspired topic.',
+        'To persuade readers to purchase a specific product that is mentioned in the passage.',
+        'To tell an entirely fictional adventure story unrelated to real current events.',
+        'To provide a quick recap of unrelated sports scores from the past week.'
       ]
     }
   ];
@@ -290,21 +315,18 @@ export function buildQuestions(title: string, topic: string, passage: string, co
   // requested, generate additional "detail" questions from other sentences
   // in the passage so the returned count always matches what was asked for,
   // instead of silently capping at 5.
-  const usableSentences = sentences.length > 0 ? sentences : [`This passage discusses ${topic}.`];
+  const usableSentences = sentences.length > 0 ? sentences : [`This passage discusses ${topic} in detail for students.`];
+  const usedAnswers = new Set(questions.map((q) => q.answer));
   let sentenceCursor = 1;
   while (questions.length < count) {
     const sentence = usableSentences[sentenceCursor % usableSentences.length];
     sentenceCursor += 1;
+    usedAnswers.add(sentence);
     questions.push({
       type: 'detail',
       question: `Which additional detail is supported by the passage?`,
       answer: sentence,
-      options: [
-        sentence,
-        'The passage says this topic has never been discussed before.',
-        'The passage claims there is no evidence about this topic.',
-        'The passage focuses only on unrelated entertainment news.'
-      ]
+      options: [sentence, ...buildSentenceDistractors(sentence, usableSentences, usedAnswers)]
     });
   }
 
