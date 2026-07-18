@@ -7,13 +7,19 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get('next') ?? '/generator';
 
   if (code) {
-    const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+    try {
+      const supabase = await createSupabaseServerClient();
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error) {
+        return NextResponse.redirect(new URL(next, origin));
+      }
+      console.error('Auth callback exchangeCodeForSession failed:', error.message);
+    } catch (err) {
+      console.error('Auth callback threw:', err instanceof Error ? err.message : err);
     }
-    console.error('Auth callback exchangeCodeForSession failed:', error.message);
   }
 
-  return NextResponse.redirect(`${origin}/auth?error=Could not confirm your account. Please try signing in, or sign up again.`);
+  const failureUrl = new URL('/auth', origin);
+  failureUrl.searchParams.set('error', 'Could not confirm your account. Please try signing in, or sign up again.');
+  return NextResponse.redirect(failureUrl);
 }

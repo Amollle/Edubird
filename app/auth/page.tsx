@@ -2,11 +2,17 @@ import { redirect } from 'next/navigation';
 import { getSessionUser } from '@/lib/auth';
 import { AuthPage } from '@/components/auth/auth-page';
 
-export default async function AuthRoute() {
+type Props = {
+  searchParams: Promise<{ error?: string }>;
+};
+
+export default async function AuthRoute({ searchParams }: Props) {
   const user = await getSessionUser();
   if (user) {
     redirect('/generator');
   }
 
-  return <AuthPage />;
+  const { error } = await searchParams;
+
+  return <AuthPage initialError={error} />;
 }

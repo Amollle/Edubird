@@ -13,13 +13,17 @@ const quote = {
   title: 'Ph.D. in Educational Psychology'
 };
 
-export function AuthPage() {
+type Props = {
+  initialError?: string;
+};
+
+export function AuthPage({ initialError }: Props) {
   const [mode, setMode] = useState<Mode>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [gradeLevel, setGradeLevel] = useState('9');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(initialError || '');
   const [messageTone, setMessageTone] = useState<'warning' | 'success'>('warning');
   const [pending, startTransition] = useTransition();
   const router = useRouter();
