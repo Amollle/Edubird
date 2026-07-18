@@ -46,7 +46,8 @@ export function AuthPage({ initialError }: Props) {
                   data: {
                     full_name: fullName,
                     grade_level: gradeLevel
-                  }
+                  },
+                  emailRedirectTo: `${window.location.origin}/auth/callback`
                 }
               })
             : await supabase.auth.signInWithPassword({ email, password });
